@@ -1,0 +1,30 @@
+{
+  "menu_play": "Play Game",
+  "menu_host": "Host Room",
+  "menu_join": "Join Room",
+  "menu_settings": "Settings",
+  "menu_quit": "Quit",
+
+  "setting_language": "Language",
+  "setting_vol_master": "Master Volume",
+  "setting_vol_music": "Music",
+  "setting_vol_sfx": "SFX",
+  "setting_save": "Save Changes",
+
+  "lobby_custom_map": "Custom Map",
+  "lobby_max_planes": "Max Planes",
+  "lobby_flight_path": "Flight Path Length",
+  "lobby_btn_ready": "Ready",
+
+  "msg_waiting_host": "Waiting for Host...",
+  "msg_plane_stunned": "Plane Stunned!",
+  "msg_route_hit": "Route Intercepted!",
+  "btn_about": "About",
+  "title_about": "Developer Info",
+  "txt_about_desc": "A new take on the Battleship genre. Truong.",
+  "btn_close": "Close",
+
+  "setting_screen_shake": "Screen Shake",
+  "setting_vibrate": "Device Vibration",
+  "btn_close": "Close"
+}
