@@ -1,0 +1,22 @@
+{
+  "menu_play": "Chơi ngay",
+  "menu_host": "Tạo phòng",
+  "menu_join": "Tìm phòng",
+  "menu_settings": "Cài đặt",
+  "menu_quit": "Thoát",
+
+  "setting_language": "Ngôn ngữ",
+  "setting_vol_master": "Âm lượng tổng",
+  "setting_vol_music": "Nhạc nền",
+  "setting_vol_sfx": "Hiệu ứng",
+  "setting_save": "Lưu cài đặt",
+
+  "lobby_custom_map": "Bản đồ tự do",
+  "lobby_max_planes": "Số lượng máy bay",
+  "lobby_flight_path": "Độ dài đường bay",
+  "lobby_btn_ready": "Sẵn sàng",
+
+  "msg_waiting_host": "Đang chờ Chủ phòng...",
+  "msg_plane_stunned": "Máy bay bị choáng!",
+  "msg_route_hit": "Đã cắt đứt đường bay!"
+}

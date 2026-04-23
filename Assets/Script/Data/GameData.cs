@@ -13,6 +13,8 @@ public class GameSettings
 
     public bool enableScreenShake = true;
     public bool enableVibrate = true;
+
+    public string playerName = "Chỉ huy vô danh";
 }
 
 [System.Serializable]

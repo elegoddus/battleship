@@ -26,5 +26,18 @@
 
   "setting_screen_shake": "Rung màn hình",
   "setting_vibrate": "Rung thiết bị",
-  "btn_close": "Đóng"
+  "btn_close": "Đóng",
+  
+  "lobby_enter_name": "Nhập tên của bạn...",
+  "lobby_enter_name_label": "Tên",
+  "lobby_btn_find": "Tìm phòng",
+  "lobby_btn_create": "Tạo phòng",
+  "lobby_room_list": "Danh sách phòng",
+  "popup_create_title": "Thiết lập phòng",
+  "popup_room_name": "Tên phòng...",
+  "popup_password": "Mật khẩu (Tùy chọn)...",
+  "popup_room_name_label": "Tên phòng",
+  "popup_password_label": "Mật khẩu",
+  "btn_confirm": "Xác nhận",
+  "btn_cancel": "Hủy"
 }

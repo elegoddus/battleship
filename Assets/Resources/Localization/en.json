@@ -26,5 +26,18 @@
 
   "setting_screen_shake": "Screen Shake",
   "setting_vibrate": "Device Vibration",
-  "btn_close": "Close"
+  "btn_close": "Close",
+
+  "lobby_enter_name": "Enter your name...",
+  "lobby_enter_name_label": "Name",
+  "lobby_btn_find": "Find Room",
+  "lobby_btn_create": "Create Room",
+  "lobby_room_list": "Available Rooms",
+  "popup_create_title": "Room Setup",
+  "popup_room_name": "Room name...",
+  "popup_password": "Password (Optional)...",
+  "popup_room_name_label": "Room name",
+  "popup_password_label": "Password",
+  "btn_confirm": "Confirm",
+  "btn_cancel": "Cancel"
 }
