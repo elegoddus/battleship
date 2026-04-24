@@ -26,7 +26,7 @@
 
   "setting_screen_shake": "Rung màn hình",
   "setting_vibrate": "Rung thiết bị",
-  "btn_close": "Đóng",
+  "btn_leave": "Rời khỏi",
   
   "lobby_enter_name": "Nhập tên của bạn...",
   "lobby_enter_name_label": "Tên",
@@ -39,5 +39,21 @@
   "popup_room_name_label": "Tên phòng",
   "popup_password_label": "Mật khẩu",
   "btn_confirm": "Xác nhận",
-  "btn_cancel": "Hủy"
+  "btn_cancel": "Hủy",
+  
+  "room_title": "PHÒNG CHỜ",
+  "room_host": "Chủ phòng: ",
+  "room_player": "Người chơi: ",
+  "room_faction": "Chọn phe",
+  "faction_russia": "Liên bang Nga",
+  "faction_usa": "Hoa Kỳ",
+  "faction_japan": "Nhật Bản",
+  "room_start": "BẮT ĐẦU",
+  "room_ready": "SẴN SÀNG",
+  "room_map_size": "Kích thước bản đồ",
+  "room_max_planes": "Số máy bay tối đa",
+
+  "status_waiting_player": "Đang chờ đối thủ...",
+  "status_not_ready": "Chưa sẵn sàng",
+  "status_ready": "ĐÃ SẴN SÀNG!"
 }

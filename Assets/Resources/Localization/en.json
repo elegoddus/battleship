@@ -26,7 +26,7 @@
 
   "setting_screen_shake": "Screen Shake",
   "setting_vibrate": "Device Vibration",
-  "btn_close": "Close",
+  "btn_leave": "Leave",
 
   "lobby_enter_name": "Enter your name...",
   "lobby_enter_name_label": "Name",
@@ -39,5 +39,21 @@
   "popup_room_name_label": "Room name",
   "popup_password_label": "Password",
   "btn_confirm": "Confirm",
-  "btn_cancel": "Cancel"
+  "btn_cancel": "Cancel",
+
+  "room_title": "LOBBY ROOM",
+  "room_host": "Host: ",
+  "room_player": "Player: ",
+  "room_faction": "Select Faction",
+  "faction_russia": "Russia",
+  "faction_usa": "USA",
+  "faction_japan": "Japan",
+  "room_start": "START GAME",
+  "room_ready": "READY",
+  "room_map_size": "Map Size",
+  "room_max_planes": "Max Planes",
+
+  "status_waiting_player": "Waiting for opponent...",
+  "status_not_ready": "Not Ready",
+  "status_ready": "READY!"
 }

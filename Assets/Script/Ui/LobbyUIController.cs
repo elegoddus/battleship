@@ -40,6 +40,8 @@ public class LobbyUIController : MonoBehaviour
     public void OpenCreateRoomPopup()
     {
         popupCreateRoom.SetActive(true);
+        string myName = DataManager.Instance.CurrentSettings.playerName;
+        inputRoomName.text = myName + " - Room";
     }
 
     public void OnClickFindRoom()
