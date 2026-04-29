@@ -55,5 +55,13 @@
 
   "status_waiting_player": "Waiting for opponent...",
   "status_not_ready": "Not Ready",
-  "status_ready": "READY!"
+  "status_ready": "READY!",
+
+  "setting_game_mode": "Combat Mode",
+  "mode_ships": "Naval Warfare",
+  "mode_planes": "Air Combat",
+  "setting_map_size": "Map Size",
+  "setting_custom_map": "Custom Map (Draw)",
+  "setting_custom_match": "Custom Match Rules",
+  "btn_draw_map": "OPEN MAP EDITOR"
 }

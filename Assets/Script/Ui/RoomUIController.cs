@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using Unity.Netcode;
 using System.Collections.Generic;
+using Unity.Collections;
 
 public class RoomUIController : MonoBehaviour
 {
@@ -18,28 +19,59 @@ public class RoomUIController : MonoBehaviour
     [Header("UI - Center (Settings)")]
     public CanvasGroup centerSettingsGroup;
 
+    [Header("UI - Labels (Dành cho Song ngữ)")]
+    public TextMeshProUGUI txtLabelGameMode;
+    public TextMeshProUGUI txtLabelMapSize;
+    public TextMeshProUGUI txtLabelCustomMap;
+    public TextMeshProUGUI txtLabelCustomMatch;
+    public TextMeshProUGUI txtBtnDrawMap;
+
+    [Header("UI - Center Settings (Tương tác)")]
+    public TMP_Dropdown dropdownGameMode; 
+    public TMP_InputField inputMapWidth;
+    public TMP_InputField inputMapHeight;
+    public Toggle toggleCustomMap;
+    public GameObject btnDrawMap; 
+    public Toggle toggleCustomMatch;
+    public GameObject panelCustomGameOptions;
+
     [Header("UI - Bottom Buttons")]
     public Button btnLeave;
     public Button btnAction;
     public TextMeshProUGUI txtBtnAction;
 
     [Header("Dữ liệu Phe phái")]
-    public FactionData[] availableFactions; // Kéo thả 3 file FactionData vào đây
+    public FactionData[] availableFactions;
 
+    private void Start()
+    {
+        // Đăng ký sự kiện Nút bấm (Chỉ làm 1 lần ở Start)
+        btnLeave.onClick.AddListener(LeaveRoom);
+        btnAction.onClick.AddListener(OnActionButtonClicked);
+
+        // Logic Hiện/Ẩn menu con
+        toggleCustomMap.onValueChanged.AddListener((isOn) => { if(btnDrawMap) btnDrawMap.SetActive(isOn); });
+        toggleCustomMatch.onValueChanged.AddListener((isOn) => { if(panelCustomGameOptions) panelCustomGameOptions.SetActive(isOn); });
+
+        // Lắng nghe Host thay đổi Cài đặt
+        dropdownGameMode.onValueChanged.AddListener(delegate { OnHostChangedSettings(); });
+        toggleCustomMap.onValueChanged.AddListener(delegate { OnHostChangedSettings(); });
+        toggleCustomMatch.onValueChanged.AddListener(delegate { OnHostChangedSettings(); });
+        inputMapWidth.onEndEdit.AddListener(delegate { OnHostChangedSettings(); });
+        inputMapHeight.onEndEdit.AddListener(delegate { OnHostChangedSettings(); });
+
+        localFactionDropdown.onValueChanged.AddListener(OnLocalFactionChanged);
+    }
 
     private void OnEnable()
     {
-        // Khi Panel này bật lên (sau khi đã StartHost hoặc StartClient)
         bool isServer = NetworkManager.Singleton.IsServer;
-
-        // 1. Khóa/Mở cài đặt ở giữa
         if (centerSettingsGroup != null) centerSettingsGroup.interactable = isServer;
 
-        // 2. Thiết lập nút Bắt đầu / Sẵn sàng
         if (isServer)
         {
             txtBtnAction.text = "BẮT ĐẦU";
-            btnAction.interactable = false; // Đợi Client ready mới mở
+            btnAction.interactable = false; 
         }
         else
         {
@@ -48,42 +80,102 @@ public class RoomUIController : MonoBehaviour
             txtRemoteStatus.text = "CHỦ PHÒNG";
         }
 
-        // 3. Đăng ký sự kiện thay đổi nút Sẵn sàng
-        if (LobbyNetworkManager.Instance != null)
-        {
-            LobbyNetworkManager.Instance.isClientReady.OnValueChanged += UpdateReadyUI;
-            
-            // Lắng nghe khi có người đổi tên (Client vào phòng)
-            LobbyNetworkManager.Instance.hostName.OnValueChanged += (oldVal, newVal) => UpdateNamesUI();
-            LobbyNetworkManager.Instance.clientName.OnValueChanged += (oldVal, newVal) => UpdateNamesUI();
-            
-            UpdateNamesUI(); // Gọi lần đầu
-        }
-
-        localFactionDropdown.onValueChanged.AddListener(OnLocalFactionChanged);
-
-        if (LobbyNetworkManager.Instance != null)
-        {
-            LobbyNetworkManager.Instance.isClientReady.OnValueChanged += UpdateReadyUI;
-            LobbyNetworkManager.Instance.hostName.OnValueChanged += (oldVal, newVal) => UpdateNamesUI();
-            LobbyNetworkManager.Instance.clientName.OnValueChanged += (oldVal, newVal) => UpdateNamesUI();
-            
-            // 2. Lắng nghe mạng khi có người đổi phe
-            LobbyNetworkManager.Instance.hostFactionIndex.OnValueChanged += (oldVal, newVal) => UpdateFactionUI();
-            LobbyNetworkManager.Instance.clientFactionIndex.OnValueChanged += (oldVal, newVal) => UpdateFactionUI();
-            
-            UpdateNamesUI(); 
-            UpdateFactionUI(); // Gọi lần đầu để load UI
-        }
-
+        // Setup Ngôn ngữ & Dropdown
+        ApplyLanguageToSettingsUI();
         SetupFactionDropdown();
-        
-        // Đăng ký sự kiện đổi ngôn ngữ để dịch lại Dropdown nếu người chơi đổi ngôn ngữ giữa chừng
+
         if (LocalizationManager.Instance != null)
         {
+            LocalizationManager.Instance.OnLanguageChanged += ApplyLanguageToSettingsUI;
             LocalizationManager.Instance.OnLanguageChanged += SetupFactionDropdown;
             LocalizationManager.Instance.OnLanguageChanged += UpdateFactionUI;
         }
+
+        // Lắng nghe Mạng
+        if (LobbyNetworkManager.Instance != null)
+        {
+            LobbyNetworkManager.Instance.isClientReady.OnValueChanged += UpdateReadyUI;
+            LobbyNetworkManager.Instance.hostName.OnValueChanged += OnNameChanged;
+            LobbyNetworkManager.Instance.clientName.OnValueChanged += OnNameChanged;
+            LobbyNetworkManager.Instance.hostFactionIndex.OnValueChanged += OnFactionChanged;
+            LobbyNetworkManager.Instance.clientFactionIndex.OnValueChanged += OnFactionChanged;
+            LobbyNetworkManager.Instance.RoomSettings.OnValueChanged += SyncSettingsUI;
+
+            // Gọi đồng bộ lần đầu tiên
+            UpdateNamesUI();
+            UpdateFactionUI();
+            UpdateReadyUI(false, LobbyNetworkManager.Instance.isClientReady.Value);
+            SyncSettingsUI(new LobbySettings(), LobbyNetworkManager.Instance.RoomSettings.Value);
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Gỡ lắng nghe để tránh lỗi rò rỉ bộ nhớ
+        if (LocalizationManager.Instance != null)
+        {
+            LocalizationManager.Instance.OnLanguageChanged -= ApplyLanguageToSettingsUI;
+            LocalizationManager.Instance.OnLanguageChanged -= SetupFactionDropdown;
+            LocalizationManager.Instance.OnLanguageChanged -= UpdateFactionUI;
+        }
+
+        if (LobbyNetworkManager.Instance != null)
+        {
+            LobbyNetworkManager.Instance.isClientReady.OnValueChanged -= UpdateReadyUI;
+            LobbyNetworkManager.Instance.hostName.OnValueChanged -= OnNameChanged;
+            LobbyNetworkManager.Instance.clientName.OnValueChanged -= OnNameChanged;
+            LobbyNetworkManager.Instance.hostFactionIndex.OnValueChanged -= OnFactionChanged;
+            LobbyNetworkManager.Instance.clientFactionIndex.OnValueChanged -= OnFactionChanged;
+            LobbyNetworkManager.Instance.RoomSettings.OnValueChanged -= SyncSettingsUI;
+        }
+    }
+
+    // --- CÁC HÀM XỬ LÝ (WRAPPERS) ---
+    private void OnNameChanged(FixedString32Bytes oldVal, FixedString32Bytes newVal) { UpdateNamesUI(); }
+    private void OnFactionChanged(int oldVal, int newVal) { UpdateFactionUI(); }
+
+    private void ApplyLanguageToSettingsUI()
+    {
+        if (txtLabelGameMode != null) txtLabelGameMode.text = LocalizationManager.Instance.GetText("setting_game_mode");
+        if (txtLabelMapSize != null) txtLabelMapSize.text = LocalizationManager.Instance.GetText("setting_map_size");
+        if (txtLabelCustomMap != null) txtLabelCustomMap.text = LocalizationManager.Instance.GetText("setting_custom_map");
+        if (txtLabelCustomMatch != null) txtLabelCustomMatch.text = LocalizationManager.Instance.GetText("setting_custom_match");
+        if (txtBtnDrawMap != null) txtBtnDrawMap.text = LocalizationManager.Instance.GetText("btn_draw_map");
+
+        if (dropdownGameMode != null)
+        {
+            int currentValue = dropdownGameMode.value; 
+            dropdownGameMode.ClearOptions();
+            dropdownGameMode.AddOptions(new List<string> {
+                LocalizationManager.Instance.GetText("mode_ships"),  
+                LocalizationManager.Instance.GetText("mode_planes")  
+            });
+            dropdownGameMode.SetValueWithoutNotify(currentValue);
+        }
+    }
+
+    private void SetupFactionDropdown()
+    {
+        localFactionDropdown.ClearOptions();
+        List<string> options = new List<string>();
+        foreach (var faction in availableFactions)
+        {
+            options.Add(LocalizationManager.Instance.GetText(faction.factionKey));
+        }
+        localFactionDropdown.AddOptions(options);
+        
+        if (NetworkManager.Singleton.IsServer)
+            localFactionDropdown.SetValueWithoutNotify(LobbyNetworkManager.Instance.hostFactionIndex.Value);
+        else
+            localFactionDropdown.SetValueWithoutNotify(LobbyNetworkManager.Instance.clientFactionIndex.Value);
+    }
+
+    private void OnLocalFactionChanged(int selectedIndex)
+    {
+        if (NetworkManager.Singleton.IsServer)
+            LobbyNetworkManager.Instance.hostFactionIndex.Value = selectedIndex; 
+        else
+            LobbyNetworkManager.Instance.ChangeClientFactionServerRpc(selectedIndex); 
     }
 
     private void UpdateNamesUI()
@@ -100,55 +192,6 @@ public class RoomUIController : MonoBehaviour
         {
             txtLocalName.text = string.IsNullOrEmpty(cName) ? "Người chơi" : cName;
             txtRemoteName.text = string.IsNullOrEmpty(hName) ? "Chủ phòng" : hName;
-        }
-    }
-
-    private void OnDisable()
-    {
-        // Phải hủy đăng ký khi tắt Panel để tránh lỗi bộ nhớ
-        localFactionDropdown.onValueChanged.RemoveListener(OnLocalFactionChanged);
-        if (LobbyNetworkManager.Instance != null)
-        {
-            LobbyNetworkManager.Instance.isClientReady.OnValueChanged -= UpdateReadyUI;
-        }
-
-        if (LocalizationManager.Instance != null)
-        {
-            LocalizationManager.Instance.OnLanguageChanged -= SetupFactionDropdown;
-            LocalizationManager.Instance.OnLanguageChanged -= UpdateFactionUI;
-        }
-    }
-
-    // Hàm tự động nhét chữ vào Dropdown
-    private void SetupFactionDropdown()
-    {
-        localFactionDropdown.ClearOptions();
-        List<string> options = new List<string>();
-
-        foreach (var faction in availableFactions)
-        {
-            // Dịch từ Key sang chữ hiển thị (VD: faction_russia -> Liên bang Nga)
-            options.Add(LocalizationManager.Instance.GetText(faction.factionKey));
-        }
-
-        localFactionDropdown.AddOptions(options);
-        
-        // Giữ nguyên lựa chọn hiện tại
-        if (NetworkManager.Singleton.IsServer)
-            localFactionDropdown.SetValueWithoutNotify(LobbyNetworkManager.Instance.hostFactionIndex.Value);
-        else
-            localFactionDropdown.SetValueWithoutNotify(LobbyNetworkManager.Instance.clientFactionIndex.Value);
-    }
-
-    private void OnLocalFactionChanged(int selectedIndex)
-    {
-        if (NetworkManager.Singleton.IsServer)
-        {
-            LobbyNetworkManager.Instance.hostFactionIndex.Value = selectedIndex; // Host tự ghi
-        }
-        else
-        {
-            LobbyNetworkManager.Instance.ChangeClientFactionServerRpc(selectedIndex); // Client phải xin Server ghi
         }
     }
 
@@ -170,6 +213,34 @@ public class RoomUIController : MonoBehaviour
         }
     }
 
+    private void OnHostChangedSettings()
+    {
+        if (!NetworkManager.Singleton.IsServer) return;
+
+        LobbySettings current = LobbyNetworkManager.Instance.RoomSettings.Value;
+
+        current.matchRules.isShipMode = (dropdownGameMode.value == 0); 
+        current.mapSettings.isCustomMap = toggleCustomMap.isOn;
+        current.matchRules.isCustomMatch = toggleCustomMatch.isOn;
+
+        if (int.TryParse(inputMapWidth.text, out int w)) current.mapSettings.mapWidth = w;
+        if (int.TryParse(inputMapHeight.text, out int h)) current.mapSettings.mapHeight = h;
+
+        LobbyNetworkManager.Instance.HostUpdateSettings(current);
+    }
+
+    private void SyncSettingsUI(LobbySettings oldSettings, LobbySettings newSettings)
+    {
+        dropdownGameMode.SetValueWithoutNotify(newSettings.matchRules.isShipMode ? 0 : 1);
+        toggleCustomMap.SetIsOnWithoutNotify(newSettings.mapSettings.isCustomMap);
+        toggleCustomMatch.SetIsOnWithoutNotify(newSettings.matchRules.isCustomMatch);
+        inputMapWidth.SetTextWithoutNotify(newSettings.mapSettings.mapWidth.ToString());
+        inputMapHeight.SetTextWithoutNotify(newSettings.mapSettings.mapHeight.ToString());
+
+        if(btnDrawMap) btnDrawMap.SetActive(newSettings.mapSettings.isCustomMap);
+        if(panelCustomGameOptions) panelCustomGameOptions.SetActive(newSettings.matchRules.isCustomMatch);
+    }
+
     private void UpdateReadyUI(bool previousValue, bool isReady)
     {
         if (NetworkManager.Singleton.IsServer)
@@ -183,7 +254,7 @@ public class RoomUIController : MonoBehaviour
         }
     }
 
-    public void OnActionButtonClicked() // Gắn hàm này vào nút btn_Action trên Inspector
+    public void OnActionButtonClicked() 
     {
         if (NetworkManager.Singleton.IsServer)
         {
@@ -192,23 +263,13 @@ public class RoomUIController : MonoBehaviour
         }
         else
         {
-            // Client bấm Sẵn sàng -> Gọi hàm bên NetworkManager
             LobbyNetworkManager.Instance.ToggleReadyServerRpc();
         }
     }
 
     public void LeaveRoom()
     {
-        // 1. Ngắt kết nối mạng (Tắt Host hoặc ngắt Client)
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.Shutdown();
-        }
-        
-        // 2. Gọi MenuUIManager để ẩn Panel Room và hiện Panel MainMenu
-        if (MenuUIManager.Instance != null)
-        {
-            MenuUIManager.Instance.ShowMainMenu();
-        }
+        if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
+        if (MenuUIManager.Instance != null) MenuUIManager.Instance.ShowMainMenu();
     }
 }

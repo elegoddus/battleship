@@ -55,5 +55,13 @@
 
   "status_waiting_player": "Đang chờ đối thủ...",
   "status_not_ready": "Chưa sẵn sàng",
-  "status_ready": "ĐÃ SẴN SÀNG!"
+  "status_ready": "ĐÃ SẴN SÀNG!",
+
+  "setting_game_mode": "Chế độ chiến đấu",
+  "mode_ships": "Thủy chiến",
+  "mode_planes": "Không chiến",
+  "setting_map_size": "Kích thước bản đồ",
+  "setting_custom_map": "Bản đồ tự do (Vẽ tay)",
+  "setting_custom_match": "Tùy chỉnh luật chơi",
+  "btn_draw_map": "VÀO VẼ BẢN ĐỒ"
 }
