@@ -4,18 +4,15 @@
   "menu_join": "Join Room",
   "menu_settings": "Settings",
   "menu_quit": "Quit",
-
   "setting_language": "Language",
   "setting_vol_master": "Master Volume",
   "setting_vol_music": "Music",
   "setting_vol_sfx": "SFX",
   "setting_save": "Save Changes",
-
   "lobby_custom_map": "Custom Map",
   "lobby_max_planes": "Max Planes",
   "lobby_flight_path": "Flight Path Length",
   "lobby_btn_ready": "Ready",
-
   "msg_waiting_host": "Waiting for Host...",
   "msg_plane_stunned": "Plane Stunned!",
   "msg_route_hit": "Route Intercepted!",
@@ -23,11 +20,9 @@
   "title_about": "Developer Info",
   "txt_about_desc": "A new take on the Battleship genre. Truong.",
   "btn_close": "Close",
-
   "setting_screen_shake": "Screen Shake",
   "setting_vibrate": "Device Vibration",
   "btn_leave": "Leave",
-
   "lobby_enter_name": "Enter your name...",
   "lobby_enter_name_label": "Name",
   "lobby_btn_find": "Find Room",
@@ -40,7 +35,6 @@
   "popup_password_label": "Password",
   "btn_confirm": "Confirm",
   "btn_cancel": "Cancel",
-
   "room_title": "LOBBY ROOM",
   "room_host": "Host: ",
   "room_player": "Player: ",
@@ -52,16 +46,22 @@
   "room_ready": "READY",
   "room_map_size": "Map Size",
   "room_max_planes": "Max Planes",
-
   "status_waiting_player": "Waiting for opponent...",
   "status_not_ready": "Not Ready",
   "status_ready": "READY!",
-
   "setting_game_mode": "Combat Mode",
   "mode_ships": "Naval Warfare",
   "mode_planes": "Air Combat",
   "setting_map_size": "Map Size",
   "setting_custom_map": "Custom Map (Draw)",
   "setting_custom_match": "Custom Match Rules",
-  "btn_draw_map": "OPEN MAP EDITOR"
+  "btn_draw_map": "OPEN MAP EDITOR",
+  "map_btn_minimize": "Minimize",
+  "map_btn_clear_all": "Clear All",
+  "map_tool_pen": "Draw Zone",
+  "map_tool_eraser": "Eraser",
+  "map_tool_pan": "Pan View",
+  "map_btn_save": "Save Map",
+  "error_map_min": "Minimum size is 5x5",
+  "error_map_max": "Maximum size is 100x100"
 }

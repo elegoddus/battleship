@@ -35,6 +35,10 @@ public class RoomUIController : MonoBehaviour
     public Toggle toggleCustomMatch;
     public GameObject panelCustomGameOptions;
 
+    [Header("UI - Map Editor")]
+    public GameObject panelMapEditor; // Kéo Panel_MapEditor vào đây
+    public Button btnMinimizeMap;     // Kéo Btn_Minimize vào đây
+
     [Header("UI - Bottom Buttons")]
     public Button btnLeave;
     public Button btnAction;
@@ -61,6 +65,26 @@ public class RoomUIController : MonoBehaviour
         inputMapHeight.onEndEdit.AddListener(delegate { OnHostChangedSettings(); });
 
         localFactionDropdown.onValueChanged.AddListener(OnLocalFactionChanged);
+
+        // Lắng nghe nút mở Map Editor (Từ Setting)
+        if (btnDrawMap != null)
+        {
+            btnDrawMap.GetComponent<Button>().onClick.AddListener(() => {
+                panelMapEditor.SetActive(true);
+            });
+        }
+
+        // Lắng nghe nút thu nhỏ (Từ Header của Map Editor)
+        if (btnMinimizeMap != null)
+        {
+            btnMinimizeMap.onClick.AddListener(() => {
+                panelMapEditor.SetActive(false);
+            });
+        }
+        
+        // Đảm bảo mặc định Map Editor bị ẩn khi mới vào phòng
+        if (panelMapEditor != null) panelMapEditor.SetActive(false);
+
     }
 
     private void OnEnable()
@@ -213,31 +237,53 @@ public class RoomUIController : MonoBehaviour
         }
     }
 
-    private void OnHostChangedSettings()
+    // Trong RoomUIController.cs, cập nhật hàm OnHostChangedSettings
+private void OnHostChangedSettings()
+{
+    if (!NetworkManager.Singleton.IsServer) return;
+
+    LobbySettings current = LobbyNetworkManager.Instance.RoomSettings.Value;
+
+    // Xử lý ô nhập Size
+    if (int.TryParse(inputMapWidth.text, out int val))
     {
-        if (!NetworkManager.Singleton.IsServer) return;
-
-        LobbySettings current = LobbyNetworkManager.Instance.RoomSettings.Value;
-
-        current.matchRules.isShipMode = (dropdownGameMode.value == 0); 
-        current.mapSettings.isCustomMap = toggleCustomMap.isOn;
-        current.matchRules.isCustomMatch = toggleCustomMatch.isOn;
-
-        if (int.TryParse(inputMapWidth.text, out int w)) current.mapSettings.mapWidth = w;
-        if (int.TryParse(inputMapHeight.text, out int h)) current.mapSettings.mapHeight = h;
-
-        LobbyNetworkManager.Instance.HostUpdateSettings(current);
+        // Giới hạn 5 - 100
+        val = Mathf.Clamp(val, 5, 100);
+        current.mapSettings.mapWidth = val;
+        current.mapSettings.mapHeight = val; // Bạn muốn map vuông mặc định
+        inputMapWidth.text = val.ToString(); // Cập nhật lại UI nếu người dùng nhập lố
+        inputMapHeight.text = val.ToString();
     }
+
+    LobbyNetworkManager.Instance.HostUpdateSettings(current);
+}
 
     private void SyncSettingsUI(LobbySettings oldSettings, LobbySettings newSettings)
     {
         dropdownGameMode.SetValueWithoutNotify(newSettings.matchRules.isShipMode ? 0 : 1);
+
+        bool isCustom = newSettings.mapSettings.isCustomMap;
+        inputMapWidth.interactable = !isCustom && NetworkManager.Singleton.IsServer;
+        inputMapHeight.interactable = !isCustom && NetworkManager.Singleton.IsServer;
+
+        toggleCustomMap.SetIsOnWithoutNotify(isCustom);
+
         toggleCustomMap.SetIsOnWithoutNotify(newSettings.mapSettings.isCustomMap);
         toggleCustomMatch.SetIsOnWithoutNotify(newSettings.matchRules.isCustomMatch);
         inputMapWidth.SetTextWithoutNotify(newSettings.mapSettings.mapWidth.ToString());
         inputMapHeight.SetTextWithoutNotify(newSettings.mapSettings.mapHeight.ToString());
 
         if(btnDrawMap) btnDrawMap.SetActive(newSettings.mapSettings.isCustomMap);
+        if(panelCustomGameOptions) panelCustomGameOptions.SetActive(newSettings.matchRules.isCustomMatch);
+
+        // bool isCustom = newSettings.mapSettings.isCustomMap;
+        // inputMapWidth.interactable = !isCustom && NetworkManager.Singleton.IsServer;
+        // inputMapHeight.interactable = !isCustom && NetworkManager.Singleton.IsServer;
+
+        inputMapWidth.SetTextWithoutNotify(newSettings.mapSettings.mapWidth.ToString());
+        inputMapHeight.SetTextWithoutNotify(newSettings.mapSettings.mapHeight.ToString());
+
+        if(btnDrawMap) btnDrawMap.SetActive(isCustom);
         if(panelCustomGameOptions) panelCustomGameOptions.SetActive(newSettings.matchRules.isCustomMatch);
     }
 
@@ -259,7 +305,7 @@ public class RoomUIController : MonoBehaviour
         if (NetworkManager.Singleton.IsServer)
         {
             Debug.Log("Chủ phòng đã bấm Bắt đầu trận đấu!");
-            // NetworkManager.Singleton.SceneManager.LoadScene("Gameplay", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            NetworkManager.Singleton.SceneManager.LoadScene("Gameplay", UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
         else
         {

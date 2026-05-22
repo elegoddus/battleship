@@ -59,12 +59,23 @@ public struct MapSettings : INetworkSerializable
     public bool isCustomMap;
     public int mapWidth;
     public int mapHeight;
+    // Mảng lưu trạng thái từng ô: true = Vùng chiến sự, false = Trống
+    public bool[] customMapData; 
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref isCustomMap);
         serializer.SerializeValue(ref mapWidth);
         serializer.SerializeValue(ref mapHeight);
+
+        // Đồng bộ mảng dữ liệu bản đồ
+        int length = 0;
+        if (!serializer.IsReader) length = customMapData?.Length ?? 0;
+        serializer.SerializeValue(ref length);
+        if (serializer.IsReader) customMapData = new bool[length];
+        
+        for (int i = 0; i < length; i++) 
+            serializer.SerializeValue(ref customMapData[i]);
     }
 }
 

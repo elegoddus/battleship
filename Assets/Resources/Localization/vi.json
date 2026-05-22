@@ -4,18 +4,15 @@
   "menu_join": "Tìm phòng",
   "menu_settings": "Cài đặt",
   "menu_quit": "Thoát",
-
   "setting_language": "Ngôn ngữ",
   "setting_vol_master": "Âm lượng tổng",
   "setting_vol_music": "Nhạc nền",
   "setting_vol_sfx": "Hiệu ứng",
   "setting_save": "Lưu cài đặt",
-
   "lobby_custom_map": "Bản đồ tự do",
   "lobby_max_planes": "Số lượng máy bay",
   "lobby_flight_path": "Độ dài đường bay",
   "lobby_btn_ready": "Sẵn sàng",
-
   "msg_waiting_host": "Đang chờ Chủ phòng...",
   "msg_plane_stunned": "Máy bay bị choáng!",
   "msg_route_hit": "Đã cắt đứt đường bay!",
@@ -23,11 +20,9 @@
   "title_about": "Thông tin phát triển",
   "txt_about_desc": "Game Battleship nhà làm.",
   "btn_close": "Đóng",
-
   "setting_screen_shake": "Rung màn hình",
   "setting_vibrate": "Rung thiết bị",
   "btn_leave": "Rời khỏi",
-  
   "lobby_enter_name": "Nhập tên của bạn...",
   "lobby_enter_name_label": "Tên",
   "lobby_btn_find": "Tìm phòng",
@@ -40,7 +35,6 @@
   "popup_password_label": "Mật khẩu",
   "btn_confirm": "Xác nhận",
   "btn_cancel": "Hủy",
-  
   "room_title": "PHÒNG CHỜ",
   "room_host": "Chủ phòng: ",
   "room_player": "Người chơi: ",
@@ -52,16 +46,22 @@
   "room_ready": "SẴN SÀNG",
   "room_map_size": "Kích thước bản đồ",
   "room_max_planes": "Số máy bay tối đa",
-
   "status_waiting_player": "Đang chờ đối thủ...",
   "status_not_ready": "Chưa sẵn sàng",
   "status_ready": "ĐÃ SẴN SÀNG!",
-
   "setting_game_mode": "Chế độ chiến đấu",
   "mode_ships": "Thủy chiến",
   "mode_planes": "Không chiến",
   "setting_map_size": "Kích thước bản đồ",
   "setting_custom_map": "Bản đồ tự do (Vẽ tay)",
   "setting_custom_match": "Tùy chỉnh luật chơi",
-  "btn_draw_map": "VÀO VẼ BẢN ĐỒ"
+  "btn_draw_map": "VÀO VẼ BẢN ĐỒ",
+  "map_btn_minimize": "Thu nhỏ",
+  "map_btn_clear_all": "Xóa toàn bộ",
+  "map_tool_pen": "Vẽ vùng",
+  "map_tool_eraser": "Tẩy xóa",
+  "map_tool_pan": "Di chuyển",
+  "map_btn_save": "Lưu bản đồ",
+  "error_map_min": "Kích thước tối thiểu là 5x5",
+  "error_map_max": "Kích thước tối đa là 100x100"
 }

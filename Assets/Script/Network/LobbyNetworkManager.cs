@@ -41,7 +41,11 @@ public class LobbyNetworkManager : NetworkBehaviour
     private void Awake()
     {
         if (Instance != null && Instance != this) Destroy(this.gameObject);
-        else Instance = this;
+        else{
+            Instance = this;
+            // Dòng lệnh này bảo vệ object không bị hủy khi đổi Scene
+            DontDestroyOnLoad(gameObject); 
+        }
     }
 
     public override void OnNetworkSpawn()
