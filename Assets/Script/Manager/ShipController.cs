@@ -186,4 +186,13 @@ public class ShipController : MonoBehaviour, IPointerClickHandler, IBeginDragHan
         rectTransform.localScale = isSelected ? new Vector3(1.15f, 1.15f, 1f) : Vector3.one;
         ValidatePlacement(); 
     }
+
+    public void SetGridPosition(int gridX, int gridY, bool vertical)
+    {
+        this.currentGridX = gridX;
+        this.currentGridY = gridY;
+        this.isVertical = vertical;
+        UpdateVisualRotation();
+        ApplyGridPosition(); 
+    }
 }

@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using TMPro;
 
 public class GameplayGridManager : MonoBehaviour
 {
@@ -15,6 +16,11 @@ public class GameplayGridManager : MonoBehaviour
     [Header("Tham chiếu Thuyền & Phe phái")]
     public GameObject shipPrefab;
     public FactionData[] availableFactions;
+
+    [Header("Cài đặt Tọa độ")]
+    public GameObject coordinatePrefab; 
+    public float hideThreshold1 = 25f;  
+    public float hideThreshold2 = 15f;  
 
     [Header("Cài đặt hiển thị")]
     public float cellSize = 50f; 
@@ -30,7 +36,13 @@ public class GameplayGridManager : MonoBehaviour
     private bool[] customMapData;
 
     private List<ShipController> activeShips = new List<ShipController>();
-    private ShipController selectedShip;
+    public ShipController selectedShip;
+
+    private List<GameObject> topLabels = new List<GameObject>();
+    private List<GameObject> leftLabels = new List<GameObject>();
+    
+    private float defaultTopY;
+    private float defaultLeftX;
 
     private void Awake()
     {
@@ -82,8 +94,77 @@ public class GameplayGridManager : MonoBehaviour
             }
         }
 
+        GenerateCoordinates(mapWidth, mapHeight, startOffset);
         CalculateZoomLimits(mapWidth, mapHeight, totalWidth, totalHeight);
         SpawnShipsInCenter(startOffset); 
+        
+        BringCoordinatesToFront();
+    }
+
+    private void GenerateCoordinates(int width, int height, Vector2 startOffset)
+    {
+        topLabels.Clear();
+        leftLabels.Clear();
+
+        defaultTopY = startOffset.y + (cellSize + cellSpacing);
+        defaultLeftX = startOffset.x - (cellSize + cellSpacing);
+
+        for (int x = 0; x < width; x++)
+        {
+            GameObject lbl = Instantiate(coordinatePrefab, gridContainer);
+            RectTransform rect = lbl.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(cellSize, cellSize);
+            
+            float posX = startOffset.x + x * (cellSize + cellSpacing);
+            rect.anchoredPosition = new Vector2(posX, defaultTopY);
+            
+            lbl.GetComponent<TextMeshProUGUI>().text = GetColumnName(x);
+            topLabels.Add(lbl);
+        }
+
+        for (int y = 0; y < height; y++)
+        {
+            GameObject lbl = Instantiate(coordinatePrefab, gridContainer);
+            RectTransform rect = lbl.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(cellSize, cellSize);
+            
+            float posY = startOffset.y - y * (cellSize + cellSpacing);
+            rect.anchoredPosition = new Vector2(defaultLeftX, posY);
+            
+            lbl.GetComponent<TextMeshProUGUI>().text = (height - 1 - y).ToString();
+            leftLabels.Add(lbl);
+        }
+    }
+
+    private string GetColumnName(int index)
+    {
+        string columnName = "";
+        int dividend = index + 1;
+        while (dividend > 0)
+        {
+            int modulo = (dividend - 1) % 26;
+            columnName = System.Convert.ToChar(65 + modulo).ToString() + columnName;
+            dividend = (int)((dividend - modulo) / 26);
+        }
+        return columnName;
+    }
+
+    private void BringCoordinatesToFront()
+    {
+        foreach (var lbl in topLabels) lbl.transform.SetAsLastSibling();
+        foreach (var lbl in leftLabels) lbl.transform.SetAsLastSibling();
+    }
+
+    private void UpdateCoordinateVisibility()
+    {
+        float actualSize = cellSize * currentZoom;
+        
+        int step = 1;
+        if (actualSize < hideThreshold2) step = 4; 
+        else if (actualSize < hideThreshold1) step = 2; 
+
+        for (int i = 0; i < topLabels.Count; i++) topLabels[i].SetActive(i % step == 0);
+        for (int i = 0; i < leftLabels.Count; i++) leftLabels[i].SetActive(i % step == 0);
     }
 
     private void CalculateZoomLimits(int width, int height, float totalW, float totalH)
@@ -92,15 +173,21 @@ public class GameplayGridManager : MonoBehaviour
         float viewWidth = viewport.rect.width;
         float viewHeight = viewport.rect.height;
 
-        float fitZoom = Mathf.Min(viewWidth / totalW, viewHeight / totalH) * 0.9f;
+        float fitZoom = Mathf.Min(viewWidth / totalW, viewHeight / totalH) * 0.95f; 
+        minZoom = fitZoom;
 
-        minZoom = Mathf.Min(fitZoom, 10f / Mathf.Max(width, height)); 
-        minZoom = Mathf.Clamp(minZoom, 0.1f, 5f);
-        maxZoom = fitZoom * 2.0f; 
+        float tenByTenSizeW = 10f * (cellSize + cellSpacing);
+        float tenByTenSizeH = 10f * (cellSize + cellSpacing);
+        float zoom10x10 = Mathf.Min(viewWidth / tenByTenSizeW, viewHeight / tenByTenSizeH);
+        
+        maxZoom = Mathf.Max(fitZoom, zoom10x10 * 1.5f); 
 
-        currentZoom = fitZoom;
+        currentZoom = minZoom;
+        
         gridContainer.localScale = new Vector3(currentZoom, currentZoom, 1f);
         gridContainer.anchoredPosition = Vector2.zero;
+
+        UpdateCoordinateVisibility();
     }
 
     private void SpawnShipsInCenter(Vector2 startOffset)
@@ -152,17 +239,13 @@ public class GameplayGridManager : MonoBehaviour
             
             if (Mathf.Abs(scroll) > 0.01f) 
             {
-                float scrollDir = Mathf.Sign(scroll);
-                currentZoom += scrollDir * currentZoom * 0.1f; 
-                
-                currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
-                gridContainer.localScale = new Vector3(currentZoom, currentZoom, 1f);
+                // Lăn chuột zoom mượt với bước 10%
+                ApplyZoom(Mathf.Sign(scroll), 0.1f);
             }
         }
 
         if (Keyboard.current != null && selectedShip != null)
         {
-            // Di chuyển bằng phím Mũi tên hoặc WASD
             if (Keyboard.current.upArrowKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame) 
                 OnButtonMoveUp();
             if (Keyboard.current.downArrowKey.wasPressedThisFrame || Keyboard.current.sKey.wasPressedThisFrame) 
@@ -172,9 +255,42 @@ public class GameplayGridManager : MonoBehaviour
             if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame) 
                 OnButtonMoveRight();
 
-            // Xoay bằng phím Space hoặc R
             if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.rKey.wasPressedThisFrame) 
                 OnButtonRotate();
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (topLabels.Count == 0 || leftLabels.Count == 0) return;
+
+        RectTransform viewportRect = gridContainer.parent.GetComponent<RectTransform>();
+
+        Vector3 viewportTopEdge = viewportRect.TransformPoint(new Vector3(0, viewportRect.rect.yMax, 0));
+        Vector3 localViewportTop = gridContainer.InverseTransformPoint(viewportTopEdge);
+
+        Vector3 viewportLeftEdge = viewportRect.TransformPoint(new Vector3(viewportRect.rect.xMin, 0, 0));
+        Vector3 localViewportLeft = gridContainer.InverseTransformPoint(viewportLeftEdge);
+
+        float clampedY = Mathf.Min(defaultTopY, localViewportTop.y - cellSize / 2f);
+        float clampedX = Mathf.Max(defaultLeftX, localViewportLeft.x + cellSize / 2f);
+
+        Vector3 inverseScale = new Vector3(1f / currentZoom, 1f / currentZoom, 1f);
+
+        foreach (var lbl in topLabels)
+        {
+            if (!lbl.activeSelf) continue;
+            RectTransform rt = lbl.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, clampedY);
+            rt.localScale = inverseScale;
+        }
+
+        foreach (var lbl in leftLabels)
+        {
+            if (!lbl.activeSelf) continue;
+            RectTransform rt = lbl.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(clampedX, rt.anchoredPosition.y);
+            rt.localScale = inverseScale;
         }
     }
 
@@ -216,6 +332,70 @@ public class GameplayGridManager : MonoBehaviour
         }
     }
 
+    // --- CÁC HÀM XỬ LÝ NÚT BẤM MỚI ---
+
+    private void ApplyZoom(float direction, float speedMultiplier)
+    {
+        currentZoom += direction * currentZoom * speedMultiplier; 
+        currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
+        gridContainer.localScale = new Vector3(currentZoom, currentZoom, 1f);
+        UpdateCoordinateVisibility();
+    }
+
+    // Bấm nút Zoom In sẽ phóng to nhanh hơn lăn chuột một chút (20%)
+    public void OnButtonZoomIn() { ApplyZoom(1f, 0.2f); }
+    
+    // Bấm nút Zoom Out sẽ thu nhỏ nhanh hơn lăn chuột một chút (20%)
+    public void OnButtonZoomOut() { ApplyZoom(-1f, 0.2f); }
+
+    public void OnButtonRandomize()
+    {
+        SelectShip(null);
+
+        // Bước 1: "Nhấc" toàn bộ tàu ra khỏi bản đồ ảo (Tọa độ -100) 
+        // để chúng không tự làm vật cản của nhau khi test vị trí mới
+        foreach (ShipController ship in activeShips)
+        {
+            ship.currentGridX = -100; 
+            ship.currentGridY = -100;
+        }
+
+        // Bước 2: Bắt đầu ném từng chiếc vào bản đồ
+        foreach (ShipController ship in activeShips)
+        {
+            bool placed = false;
+            int attempts = 0;
+            int maxAttempts = 500; // Tăng số lần thử lên 500 để dễ tìm đường trong map hẹp
+
+            while (!placed && attempts < maxAttempts)
+            {
+                attempts++;
+
+                bool randVertical = Random.value > 0.5f;
+                int randX = Random.Range(0, mapWidth);
+                int randY = Random.Range(0, mapHeight);
+
+                // Gọi hàm mới tạo để ép tọa độ và xoay hình ảnh vật lý
+                ship.SetGridPosition(randX, randY, randVertical);
+
+                // Kiểm tra xem vị trí vừa ép có đè lên vùng cấm hay tàu trước đó không
+                if (IsPlacementValid(ship))
+                {
+                    placed = true;
+                    ship.ValidatePlacement(); // Đổi sang màu Xanh hợp lệ
+                }
+            }
+
+            // Nếu xui xẻo (map quá chật) thử 500 lần không được, đành chịu báo Đỏ
+            if (!placed)
+            {
+                Debug.LogWarning($"Bản đồ quá hẹp, không thể tìm chỗ cho tàu {ship.shipLength} ô.");
+                ship.ValidatePlacement(); 
+            }
+        }
+        
+        Debug.Log("Hoàn tất tự động xếp tàu ngẫu nhiên.");
+    }
     public void OnButtonRotate() { if (selectedShip != null) selectedShip.RotateShip(); }
     public void OnButtonMoveUp() { if (selectedShip != null) selectedShip.MoveStep(0, -1); }
     public void OnButtonMoveDown() { if (selectedShip != null) selectedShip.MoveStep(0, 1); }
