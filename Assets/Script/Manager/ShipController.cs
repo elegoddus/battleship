@@ -53,6 +53,8 @@ public class ShipController : MonoBehaviour, IPointerClickHandler, IBeginDragHan
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (GameplayGridManager.Instance != null && GameplayGridManager.Instance.isCombatPhase) return;
+
         rectTransform.SetAsLastSibling();
 
         if (GameplayGridManager.Instance != null)
@@ -77,6 +79,7 @@ public class ShipController : MonoBehaviour, IPointerClickHandler, IBeginDragHan
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (GameplayGridManager.Instance != null && GameplayGridManager.Instance.isCombatPhase) return;
         if (GameplayGridManager.Instance != null)
         {
             GameplayGridManager.Instance.SelectShip(this);
@@ -86,6 +89,7 @@ public class ShipController : MonoBehaviour, IPointerClickHandler, IBeginDragHan
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (GameplayGridManager.Instance != null && GameplayGridManager.Instance.isCombatPhase) return;
         if (mainCanvas != null)
         {
             float currentZoom = rectTransform.parent.localScale.x;
@@ -95,6 +99,7 @@ public class ShipController : MonoBehaviour, IPointerClickHandler, IBeginDragHan
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        if (GameplayGridManager.Instance != null && GameplayGridManager.Instance.isCombatPhase) return;
         SnapToGrid();
     }
 
